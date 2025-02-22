@@ -1,0 +1,22 @@
+{
+    "buttons": [
+        "IPR",
+        "Note infos",
+      "1.Nomenclature (ZP20)",
+      "2.Nomenclature (CS03)",
+      "3.Nomenclature Code suppérieur (CS15)",
+      "4.MAG Stock (MD04)",
+      "5.MAG Emplacement (LS24)",
+      "6.MAG Mouvement stocks (MD51)",
+      "7.ZPAN",
+      "Saisie",
+      "Temps Gamme",
+      "Saisie Temps OF",
+      "Modif Temps Gamme",
+      "MAG Besoins (MCBZ)",
+      "COOIS sur OF",
+      "COOIS sur REF",
+      "Nomenclature interactive"
+    ]
+  }
+  
