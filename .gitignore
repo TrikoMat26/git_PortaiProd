@@ -11,6 +11,7 @@ desktop.ini
 # 🛑 Fichiers spécifiques à l'IDE (VS Code, PyCharm, etc.)
 .vscode/
 .idea/
+target/
 
 # 🛑 Clés API ou variables d'environnement
 #.env
