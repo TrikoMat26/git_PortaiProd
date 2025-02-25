@@ -206,6 +206,8 @@ class ActionSelectionDialog(QDialog):
 class ExcelViewerApp(QMainWindow):
     def __init__(self):
         super().__init__()
+        # Ajouter un drapeau de premier affichage
+        self.first_show = True 
         self.setWindowTitle("Excel Data Viewer")
 
         # -- Logique métier --
@@ -237,8 +239,10 @@ class ExcelViewerApp(QMainWindow):
     def showEvent(self, event):
         """Déclenche le chargement des données après l'affichage initial"""
         super().showEvent(event)
-        self.show_loading_message()
-        QTimer.singleShot(0, self.load_data_into_ui)
+        if self.first_show:
+            self.show_loading_message()
+            QTimer.singleShot(0, self.load_data_into_ui)
+            self.first_show = False
 
     def show_loading_message(self):
         """Affiche le message de chargement"""
