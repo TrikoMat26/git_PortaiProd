@@ -142,56 +142,92 @@ class ActionSelectionDialog(QDialog):
         self.setWindowModality(Qt.NonModal)
         self.action_names = action_names
         self.parent_window = parent
+        
+        # Style moderne
+        self.setStyleSheet("""
+            QDialog {
+                background-color: white;
+                border-radius: 12px;
+                border: 1px solid #dee2e6;
+            }
+            QPushButton {
+                border-radius: 6px;
+                padding: 10px;
+                font-size: 14px;
+                font-weight: 600;
+                margin: 3px 0;
+            }
+            QPushButton#closeButton {
+                background-color: #dc3545;
+                color: white;
+            }
+            QPushButton#closeButton:hover {
+                background-color: #c82333;
+            }
+            QPushButton#actionButton {
+                background-color: #f8f9fa;
+                color: #212529;
+                border: 1px solid #dee2e6;
+                text-align: left;
+            }
+            QPushButton#actionButton:hover {
+                background-color: #e9ecef;
+                border-left: 4px solid #0d6efd;
+            }
+        """)
 
         # Layout principal vertical
         main_layout = QVBoxLayout(self)
+        main_layout.setSpacing(15)
+        main_layout.setContentsMargins(20, 20, 20, 20)
 
-        # Bouton Fermer en premier (rouge)
-        close_button = QPushButton("Fermer cette fenêtre")
-        close_button.setStyleSheet("""
-            QPushButton {
-                background-color: red; 
-                color: white; 
-                font-weight: bold;
-                border-radius: 5px;
-                padding: 5px 15px;
-            }
-            QPushButton:hover {
-                background-color: #aa0000;
+        # Titre
+        title_label = QLabel("Actions disponibles")
+        title_label.setStyleSheet("font-size: 16px; font-weight: bold; color: #212529; margin-bottom: 5px;")
+        main_layout.addWidget(title_label)
+        
+        # Instruction
+        instruction = QLabel("Sélectionnez une action à exécuter")
+        instruction.setStyleSheet("font-size: 13px; color: #6c757d; margin-bottom: 10px;")
+        main_layout.addWidget(instruction)
+
+        # Bouton Fermer
+        close_button = QPushButton("Fermer")
+        close_button.setObjectName("closeButton")
+        close_button.clicked.connect(self.close)
+        
+        # Scroll area pour les boutons d'action
+        scroll_area = CustomScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setStyleSheet("""
+            QScrollArea {
+                border: none;
+                background-color: transparent;
             }
         """)
-        close_button.clicked.connect(self.close)
-        main_layout.addWidget(close_button)
 
-        # --- Utilisation de CustomScrollArea pour les boutons ---
-        scroll_area = CustomScrollArea()
-        scroll_area.setWidgetResizable(True)  # s'adapte à la taille du contenu
-
-        # Le conteneur qui va réellement héberger les boutons
+        # Conteneur des boutons
         scroll_container = QWidget()
         scroll_layout = QVBoxLayout(scroll_container)
-        scroll_layout.setSpacing(10)  # Espacement vertical entre boutons
+        scroll_layout.setSpacing(5)
+        scroll_layout.setContentsMargins(0, 0, 0, 0)
 
-        # Ajout des boutons dans scroll_container
+        # Ajout des boutons d'action
         for action_name in self.action_names:
             btn = QPushButton(action_name)
+            btn.setObjectName("actionButton")
             btn.clicked.connect(
                 lambda checked, name=action_name: self.on_action_button_clicked(name)
             )
             scroll_layout.addWidget(btn)
 
-        # Dire à la QScrollArea que scroll_container est son widget
         scroll_area.setWidget(scroll_container)
-
-        # On limite la hauteur pour n'afficher que ~8 boutons
-        # Supposons ~40 px de hauteur par bouton (selon votre style).
-        # Ajustez selon vos besoins (ex. 8 * 45 = 360).
-        scroll_area.setFixedHeight(9 * 50)
-
-        # On ajoute la zone défilante dans le layout principal
         main_layout.addWidget(scroll_area)
-
-        self.adjustSize()
+        main_layout.addWidget(close_button)
+        
+        # Taille fixe
+        self.setFixedWidth(320)
+        self.setMinimumHeight(400)
 
     def on_action_button_clicked(self, action_name):
         """
@@ -245,21 +281,43 @@ class ExcelViewerApp(QMainWindow):
             self.first_show = False
 
     def show_loading_message(self):
-        """Affiche le message de chargement"""
-        self.loading_label = QLabel("Chargement du fichier...", self)
+        """Affiche un message de chargement animé"""
+        self.loading_label = QLabel("Chargement des données...", self)
+        self.loading_label.setObjectName("loading_label")
         self.loading_label.setAlignment(Qt.AlignCenter)
-        self.loading_label.setStyleSheet("""
-            QLabel {
-                font-size: 16px;
-                color: #007bff;
-                font-weight: bold;
-                background-color: rgba(255, 255, 255, 200);
-                padding: 20px;
-                border-radius: 10px;
-            }
-        """)
-        self.loading_label.resize(self.size())
+        self.loading_label.resize(300, 100)
+        
+        # Centrer le message
+        window_size = self.size()
+        label_size = self.loading_label.size()
+        x = (window_size.width() - label_size.width()) // 2
+        y = (window_size.height() - label_size.height()) // 2
+        self.loading_label.move(x, y)
+        
         self.loading_label.show()
+        
+        # Effet de fondu
+        self.loading_anim = QTimer(self)
+        self.loading_opacity = 0.0
+        self.loading_anim.timeout.connect(self._update_loading_opacity)
+        self.loading_anim.start(30)
+
+    def _update_loading_opacity(self):
+        """Anime l'opacité du message de chargement"""
+        self.loading_opacity += 0.05
+        if self.loading_opacity >= 1.0:
+            self.loading_anim.stop()
+            return
+            
+        self.loading_label.setStyleSheet(f"""
+            background-color: rgba(255, 255, 255, {self.loading_opacity * 0.9});
+            color: #0d6efd;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, {self.loading_opacity * 0.15});
+        """)
 
     def hide_loading_message(self):
         """Masque le message de chargement"""
@@ -269,55 +327,222 @@ class ExcelViewerApp(QMainWindow):
  
     def init_stylesheet(self):
         self.setStyleSheet("""
-        QMainWindow { background-color: #f0f0f0; }
+        /* --- STYLE GÉNÉRAL --- */
+        QMainWindow {
+            background-color: #f8f9fa;
+        }
+        
+        /* --- BOUTONS --- */
         QPushButton {
-            background-color: #007bff; color: white; font-size: 14px;
-            font-weight: bold; border-radius: 5px; padding: 10px 20px; border: none;
+            background-color: #0d6efd;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 6px;
+            padding: 10px 20px;
+            border: none;
+            min-height: 38px;
         }
-        QPushButton:hover { background-color: #0056b3; }
-        QPushButton:pressed { background-color: #003d82; }
+        QPushButton:hover {
+            background-color: #0b5ed7;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        QPushButton:pressed {
+            background-color: #0a58ca;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.15);
+        }
+        QPushButton#reset_button {
+            background-color: #6c757d;
+        }
+        QPushButton#reset_button:hover {
+            background-color: #5c636a;
+        }
+        
+        /* --- TABLEAU --- */
         QTableWidget {
-            border: 1px solid #ddd; gridline-color: #eee;
-            background-color: white; alternate-background-color: #f9f9f9;
-            color: #333; font-size: 13px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            gridline-color: #e9ecef;
+            background-color: white;
+            alternate-background-color: #f8f9fa;
+            color: #212529;
+            font-size: 13px;
+            selection-background-color: #e7f1ff;
+            selection-color: #0d6efd;
         }
+        QTableWidget::item {
+            padding: 5px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        QTableWidget::item:selected {
+            background-color: #e7f1ff;
+            color: #0d6efd;
+        }
+        
+        /* --- EN-TÊTES --- */
         QHeaderView::section {
-            background-color: #eee; color: #333; padding: 8px;
-            font-size: 12px; font-weight: bold;
-            border-bottom: 1px solid #ddd; border-right: 1px solid #ddd;
+            background-color: #f1f3f5;
+            color: #495057;
+            padding: 10px 8px;
+            font-size: 13px;
+            font-weight: 600;
+            border: none;
+            border-right: 1px solid #dee2e6;
+            border-bottom: 2px solid #dee2e6;
         }
+        QHeaderView::section:first {
+            border-top-left-radius: 8px;
+        }
+        QHeaderView::section:last {
+            border-right: none;
+            border-top-right-radius: 8px;
+        }
+        QHeaderView::section:hover {
+            background-color: #e9ecef;
+        }
+        
+        /* --- CHAMPS DE SAISIE --- */
         QLineEdit {
-            border: 1px solid #ccc; border-radius: 4px; padding: 8px;
-            font-size: 13px; background-color: white; color: #333;
+            border: 2px solid #ced4da;
+            border-radius: 6px;
+            padding: 10px 12px;
+            font-size: 14px;
+            background-color: white;
+            color: #212529;
+            selection-background-color: #0d6efd;
+            selection-color: white;
+        }
+        QLineEdit:hover {
+            border-color: #adb5bd;
         }
         QLineEdit:focus {
-            border-color: #007bff; box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+            border-color: #0d6efd;
+            outline: none;
         }
-        QLabel { color: #666; font-size: 12px; font-weight: bold; margin-bottom: 5px; }
-        QMenu { background-color: white; border: 1px solid #ddd; }
-        QMenu::item { padding: 5px 20px; }
-        QMenu::item:selected { background-color: #007bff; color: white; }
-        """)
+        
+        /* --- ÉTIQUETTES --- */
+        QLabel {
+            color: #495057;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            padding-left: 2px;
+        }
+        QLabel#loading_label {
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #0d6efd;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* --- MENU CONTEXTUEL --- */
+        QMenu {
+            background-color: white;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 5px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        }
+        QMenu::item {
+            padding: 8px 20px;
+            border-radius: 4px;
+            margin: 2px 5px;
+        }
+        QMenu::item:selected {
+            background-color: #e7f1ff;
+            color: #0d6efd;
+        }
+        
+        /* --- COMBOBOX --- */
+        QComboBox {
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            padding: 8px;
+            background-color: white;
+            selection-background-color: #e7f1ff;
+            selection-color: #0d6efd;
+        }
+        QComboBox::drop-down {
+            width: 20px;
+            border: none;
+        }
+        QComboBox QAbstractItemView {
+            background-color: white;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            selection-background-color: #e7f1ff;
+            selection-color: #0d6efd;
+        }
+        
+        /* --- SCROLL BARS --- */
+        QScrollBar:vertical {
+            border: none;
+            background: #f8f9fa;
+            width: 10px;
+            border-radius: 5px;
+        }
+        QScrollBar::handle:vertical {
+            background: #adb5bd;
+            border-radius: 5px;
+        }
+        QScrollBar::handle:vertical:hover {
+            background: #6c757d;
+        }
+        QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+            height: 0px;
+        }
+        QScrollBar:horizontal {
+            border: none;
+            background: #f8f9fa;
+            height: 10px;
+            border-radius: 5px;
+        }
+        QScrollBar::handle:horizontal {
+            background: #adb5bd;
+            border-radius: 5px;
+        }
+        QScrollBar::handle:horizontal:hover {
+            background: #6c757d;
+        }
+        QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+            width: 0px;
+        }
+    """)
 
     def init_ui(self):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         self.main_layout = QVBoxLayout(central_widget)
-        self.main_layout.setSpacing(15)
-        self.main_layout.setContentsMargins(20, 20, 20, 20)
+        self.main_layout.setSpacing(20)
+        self.main_layout.setContentsMargins(24, 24, 24, 24)
 
-        # --- Barre de saisie OF / Référence + Bouton RAZ ---
-        input_wrapper = QWidget()
-        input_layout = QHBoxLayout(input_wrapper)
-        input_layout.setContentsMargins(0, 0, 0, 0)
-        input_layout.setSpacing(20)
+        # --- Conteneur pour OF / Référence avec style de carte ---
+        input_card = QFrame()
+        input_card.setObjectName("inputCard")
+        input_card.setStyleSheet("""
+            #inputCard {
+                background-color: white;
+                border-radius: 10px;
+                border: 1px solid #dee2e6;
+                padding: 5px;
+            }
+        """)
+        input_layout = QHBoxLayout(input_card)
+        input_layout.setContentsMargins(20, 20, 20, 20)
+        input_layout.setSpacing(24)
 
         # Groupe OF
         of_group = QWidget()
         of_layout = QVBoxLayout(of_group)
+        of_layout.setContentsMargins(0, 0, 0, 0)
+        of_layout.setSpacing(8)
         of_label = QLabel("NUMÉRO OF")
         self.of_input = ContextMenuLineEdit()
-        self.of_input.setFixedHeight(30)
+        self.of_input.setFixedHeight(40)
+        self.of_input.setPlaceholderText("Double-cliquez pour les actions...")
         # On connecte la fonction open_action_buttons_dialog
         self.of_input.doubleClicked.connect(lambda: self.open_action_buttons_dialog(self.of_input))
         of_layout.addWidget(of_label)
@@ -326,42 +551,103 @@ class ExcelViewerApp(QMainWindow):
         # Groupe Référence
         ref_group = QWidget()
         ref_layout = QVBoxLayout(ref_group)
+        ref_layout.setContentsMargins(0, 0, 0, 0)
+        ref_layout.setSpacing(8)
         ref_label = QLabel("RÉFÉRENCE")
         self.reference_input = ContextMenuLineEdit()
-        self.reference_input.setFixedHeight(30)
+        self.reference_input.setFixedHeight(40)
+        self.reference_input.setPlaceholderText("Double-cliquez pour les actions...")
         # On connecte la même fonction
         self.reference_input.doubleClicked.connect(lambda: self.open_action_buttons_dialog(self.reference_input))
         ref_layout.addWidget(ref_label)
         ref_layout.addWidget(self.reference_input)
 
         # Bouton RAZ
-        self.reset_button = QPushButton("RAZ")
-        self.reset_button.setFixedHeight(30)
+        reset_group = QWidget()
+        reset_layout = QVBoxLayout(reset_group)
+        reset_layout.setContentsMargins(0, 0, 0, 0)
+        reset_layout.setSpacing(8)
+        reset_label = QLabel("")  # Label vide pour aligner avec les autres champs
+        self.reset_button = QPushButton("Réinitialiser")
+        self.reset_button.setObjectName("reset_button")
+        self.reset_button.setFixedHeight(40)
         self.reset_button.clicked.connect(self.reset_filters)
+        reset_layout.addWidget(reset_label)
+        reset_layout.addWidget(self.reset_button)
 
         # Disposition horizontale
-        input_layout.addWidget(of_group, 50)
-        input_layout.addWidget(ref_group, 50)
-        input_layout.addWidget(self.reset_button, 20)
+        input_layout.addWidget(of_group, 43)
+        input_layout.addWidget(ref_group, 43)
+        input_layout.addWidget(reset_group, 14)
 
-        self.main_layout.addWidget(input_wrapper)
+        self.main_layout.addWidget(input_card)
 
-        # --- Zone des filtres (ligne du haut) ---
+        # --- Panneau de filtres avec style de carte ---
+        filter_card = QFrame()
+        filter_card.setObjectName("filterCard")
+        filter_card.setStyleSheet("""
+            #filterCard {
+                background-color: white;
+                border-radius: 10px;
+                border: 1px solid #dee2e6;
+                padding: 5px;
+            }
+        """)
+        filter_layout = QVBoxLayout(filter_card)
+        filter_layout.setContentsMargins(20, 15, 20, 15)
+        filter_layout.setSpacing(10)
+        
+        # Titre des filtres
+        filter_title = QLabel("Filtres")
+        filter_title.setStyleSheet("font-size: 15px; font-weight: bold; color: #343a40;")
+        filter_layout.addWidget(filter_title)
+        
+        # Conteneur de filtres
         filter_wrapper = QWidget()
         filter_wrapper_layout = QHBoxLayout(filter_wrapper)
+        filter_wrapper_layout.setContentsMargins(0, 0, 0, 0)
         self.filter_container = FilterContainer()
         filter_wrapper_layout.addWidget(self.filter_container)
         filter_wrapper_layout.addStretch()
-        self.main_layout.addWidget(filter_wrapper)
+        filter_layout.addWidget(filter_wrapper)
+        
+        self.main_layout.addWidget(filter_card)
 
-        # --- Tableau ---
+        # --- Tableau avec style de carte ---
+        table_card = QFrame()
+        table_card.setObjectName("tableCard")
+        table_card.setStyleSheet("""
+            #tableCard {
+                background-color: white;
+                border-radius: 10px;
+                border: 1px solid #dee2e6;
+                padding: 5px;
+            }
+        """)
+        table_layout = QVBoxLayout(table_card)
+        table_layout.setContentsMargins(5, 5, 5, 5)
+        table_layout.setSpacing(0)
+        
         self.table_widget = QTableWidget()
         self.table_widget.setAlternatingRowColors(True)
         self.table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed)
         self.table_widget.verticalHeader().setDefaultSectionSize(self.row_height)
         self.table_widget.cellDoubleClicked.connect(self.on_cell_double_clicked)
         self.table_widget.verticalHeader().sectionDoubleClicked.connect(self.on_row_header_double_clicked)
-        self.main_layout.addWidget(self.table_widget)
+        table_layout.addWidget(self.table_widget)
+        
+        self.main_layout.addWidget(table_card)
+
+        # --- Barre de statut pour informations ---
+        self.status_bar = QLabel("Prêt")
+        self.status_bar.setStyleSheet("""
+            padding: 8px;
+            color: #6c757d;
+            font-size: 13px;
+            font-weight: normal;
+            font-style: italic;
+        """)
+        self.main_layout.addWidget(self.status_bar)
 
     # ----------------------------------------------------------------
     #  Chargement des données et mise à jour du tableau

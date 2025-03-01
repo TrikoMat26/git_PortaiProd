@@ -25,12 +25,12 @@ class ComponentSearchWidget(QWidget):
     def setup_ui(self):
         self.setWindowTitle("Recherche de Composants")
         # Keep original size hint, but allow for expansion
-        self.setSizePolicy(QSizePolicy.Minimum,QSizePolicy.Expanding)
+        self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Expanding)
 
         # Main horizontal layout to split left and right sides
         main_layout = QHBoxLayout()
-        main_layout.setSpacing(20)
-        main_layout.setContentsMargins(20, 20, 20, 20)
+        main_layout.setSpacing(24)  # Increased spacing
+        main_layout.setContentsMargins(24, 24, 24, 24)  # Increased margins
 
         # Left side container
         left_container = QWidget()
@@ -39,14 +39,18 @@ class ComponentSearchWidget(QWidget):
         left_layout.setSpacing(20)
         left_layout.setContentsMargins(0, 0, 0, 0)
 
-        # Top labels for "0001" data
+        # Shadow effect for left container
+        left_container.setObjectName("leftPanel")
+
+        # Top labels for "0001" data with modernized design
         top_label_widget = QWidget()
+        top_label_widget.setObjectName("headerPanel")
         top_label_layout = QHBoxLayout(top_label_widget)
-        top_label_layout.setContentsMargins(0,0,0,0)
+        top_label_layout.setContentsMargins(16, 16, 16, 16)
         self.key0001_ref_label = QLabel()
-        self.key0001_ref_label.setStyleSheet("font-weight: bold; font-size: 14px;")
+        self.key0001_ref_label.setObjectName("headerLabel")
         self.key0001_desc_label = QLabel()
-        self.key0001_desc_label.setStyleSheet("font-weight: bold; font-size: 14px;")
+        self.key0001_desc_label.setObjectName("headerLabel")
         top_label_layout.addWidget(self.key0001_ref_label)
         top_label_layout.addWidget(self.key0001_desc_label)
         top_label_layout.addStretch(1)
@@ -56,7 +60,8 @@ class ComponentSearchWidget(QWidget):
         search_layout = QHBoxLayout()
         self.search_input = QLineEdit()
         self.search_input.setPlaceholderText("Entrez la référence du composant...")
-        self.search_input.setMinimumHeight(40)
+        self.search_input.setMinimumHeight(48)  # Increased height
+        self.search_input.setObjectName("searchInput")
         self.search_input.textChanged.connect(self.search_component)
         search_layout.addWidget(self.search_input)
         left_layout.addLayout(search_layout)
@@ -68,10 +73,18 @@ class ComponentSearchWidget(QWidget):
 
         # Buttons
         button_layout = QHBoxLayout()
+        button_layout.setSpacing(16)  # Increased spacing between buttons
+        
         self.open_file_button = QPushButton("Ouvrir le fichier")
+        self.open_file_button.setObjectName("primaryButton")
+        self.open_file_button.setMinimumHeight(40)  # Consistent button height
         self.open_file_button.clicked.connect(self.open_file)
+        
         self.reset_list_button = QPushButton("Initialiser la liste")
+        self.reset_list_button.setObjectName("secondaryButton")
+        self.reset_list_button.setMinimumHeight(40)  # Consistent button height
         self.reset_list_button.clicked.connect(self.reset_list)
+        
         button_layout.addWidget(self.open_file_button)
         button_layout.addWidget(self.reset_list_button)
         left_layout.addLayout(button_layout)
@@ -82,65 +95,177 @@ class ComponentSearchWidget(QWidget):
         # Right side - Selected components
         self.selected_components_widget = QTextEdit()
         self.selected_components_widget.setReadOnly(True)
-        self.selected_components_widget.setMinimumWidth(300)  # Ensure reasonable width for text display
+        self.selected_components_widget.setMinimumWidth(320)  # Slightly increased width
+        self.selected_components_widget.setObjectName("selectedComponentsPanel")
 
         # Add containers to main layout
-        main_layout.addWidget(left_container)
-        main_layout.addWidget(self.selected_components_widget)
+        main_layout.addWidget(left_container, 3)  # Give more space to left side
+        main_layout.addWidget(self.selected_components_widget, 2)  # Proportional allocation
 
         self.setLayout(main_layout)
 
+        # Modern stylesheet with updated color scheme and effects
         self.setStyleSheet("""
             QWidget {
-                background-color: #ffffff;
-                border-radius: 10px;
+                background-color: #f0f2f5;
+                color: #202124;
+                font-family: 'Segoe UI', Arial, sans-serif;
             }
+            
+            #leftPanel {
+                background-color: #ffffff;
+                border-radius: 12px;
+                border: 1px solid #d1d5db;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+            
+            #selectedComponentsPanel {
+                background-color: #ffffff;
+                border-radius: 12px;
+                border: 1px solid #d1d5db;
+                background-color: #f8f9fa;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+            
+            #headerPanel {
+                background-color: #e6effd;
+                border-radius: 10px;
+                margin-bottom: 16px;
+                border-left: 4px solid #0d6efd;
+            }
+            
+            #headerLabel {
+                font-weight: 600;
+                font-size: 15px;
+                color: #0d6efd;
+                text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+            }
+            
+            #searchInput {
+                border: 2px solid #0d6efd;
+                border-radius: 8px;
+                padding: 12px 16px;
+                font-size: 16px;
+                background-color: #ffffff;
+                color: #202124;
+                transition: all 0.2s ease-in-out;
+            }
+            
+            #searchInput:focus {
+                border-color: #0a58ca;
+                box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.25);
+                outline: none;
+            }
+            
             QLineEdit {
-                border: 2px solid #007bff;
+                border: 2px solid #d1d5db;
                 border-radius: 8px;
                 padding: 10px;
-                font-size: 16px;
-                background-color: #f9f9f9;
+                font-size: 14px;
+                background-color: #f8fafc;
+                color: #202124;
             }
+            
+            QLineEdit:disabled, QLineEdit[readOnly="true"] {
+                background-color: #f1f3f5;
+                color: #495057;
+                border-color: #ced4da;
+            }
+            
             QLabel {
                 font-size: 14px;
-                color: #333;
-                font-weight: bold;
+                color: #343a40;
+                font-weight: 600;
+                margin-bottom: 4px;
+                padding-left: 2px;
             }
-            QLineEdit:disabled {
-                background-color: #e9ecef;
-                color: #6c757d;
-            }
-            QPushButton {
-                background-color: #007bff;
+            
+            #primaryButton {
+                background-color: #0d6efd;
                 color: white;
                 border: none;
-                border-radius: 5px;
-                padding: 10px;
-                font-size: 14px;
-            }
-            QPushButton:hover {
-                background-color: #0056b3;
-            }
-            QTextEdit {
-                border: 2px solid #007bff;
                 border-radius: 8px;
-                padding: 10px;
+                padding: 12px;
                 font-size: 14px;
-                background-color: #f9f9f9;
+                font-weight: 600;
+                transition: all 0.2s ease;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+            
+            #primaryButton:hover {
+                background-color: #0b5ed7;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            }
+            
+            #secondaryButton {
+                background-color: #6c757d;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                padding: 12px;
+                font-size: 14px;
+                font-weight: 600;
+                transition: all 0.2s ease;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+            
+            #secondaryButton:hover {
+                background-color: #5c636a;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            }
+            
+            QTextEdit {
+                border: 1px solid #d1d5db;
+                border-radius: 10px;
+                padding: 12px;
+                font-size: 14px;
+                background-color: #ffffff;
+                color: #202124;
+                line-height: 1.6;
+            }
+            
+            /* Enhanced field group styling */
+            QLineEdit[objectName="component_name"] {
+                border-left: 4px solid #20c997;
+            }
+            
+            QLineEdit[objectName="reference"] {
+                border-left: 4px solid #fd7e14;
+            }
+            
+            QLineEdit[objectName="description"] {
+                border-left: 4px solid #6610f2;
             }
         """)
 
     def create_display_area(self, label_text, object_name):
         layout = QVBoxLayout()
+        layout.setSpacing(6)
+        
+        # Crée un widget conteneur pour l'étiquette pour permettre un style distinctif
+        label_container = QWidget()
+        label_container.setObjectName(f"{object_name}_label_container")
+        label_container.setMaximumHeight(30)
+        label_container_layout = QHBoxLayout(label_container)
+        label_container_layout.setContentsMargins(0, 0, 0, 0)
+        
         label = QLabel(label_text)
-        label.setFont(QFont("Arial", 10))
-        layout.addWidget(label)
+        label.setObjectName(f"{object_name}_label")
+        label.setFont(QFont("Segoe UI", 10, QFont.Weight.DemiBold))
+        label_container_layout.addWidget(label)
+        label_container_layout.addStretch()
+        
+        layout.addWidget(label_container)
+        
         text_field = QLineEdit()
         text_field.setObjectName(object_name)
         text_field.setReadOnly(True)
-        text_field.setMinimumHeight(40)
+        text_field.setMinimumHeight(42)
         layout.addWidget(text_field)
+        
+        # Espace vertical entre les groupes de champs
+        layout.addSpacing(12)
+        
         return layout
 
     def normalize_key(self, key):
