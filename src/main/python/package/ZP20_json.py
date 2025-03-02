@@ -44,9 +44,15 @@ class ComponentSearchWidget(QWidget):
         top_label_layout = QHBoxLayout(top_label_widget)
         top_label_layout.setContentsMargins(0,0,0,0)
         self.key0001_ref_label = QLabel()
-        self.key0001_ref_label.setStyleSheet("font-weight: bold; font-size: 14px;")
+        self.key0001_ref_label.setStyleSheet("font-weight: bold; font-size: 14px; background-color: #f5f5f5; padding: 5px; border-radius: 4px;")
+        self.key0001_ref_label.setTextInteractionFlags(Qt.TextSelectableByMouse | Qt.TextSelectableByKeyboard)
+        self.key0001_ref_label.setCursor(Qt.IBeamCursor)
+        
         self.key0001_desc_label = QLabel()
-        self.key0001_desc_label.setStyleSheet("font-weight: bold; font-size: 14px;")
+        self.key0001_desc_label.setStyleSheet("font-weight: bold; font-size: 14px; background-color: #f5f5f5; padding: 5px; border-radius: 4px;")
+        self.key0001_desc_label.setTextInteractionFlags(Qt.TextSelectableByMouse | Qt.TextSelectableByKeyboard)
+        self.key0001_desc_label.setCursor(Qt.IBeamCursor)
+        
         top_label_layout.addWidget(self.key0001_ref_label)
         top_label_layout.addWidget(self.key0001_desc_label)
         top_label_layout.addStretch(1)
