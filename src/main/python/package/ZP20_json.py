@@ -6,8 +6,8 @@ from PySide6.QtWidgets import (
     QWidget, QLineEdit, QLabel, QPushButton, QVBoxLayout,
     QHBoxLayout, QMessageBox, QTextEdit, QSpacerItem, QSizePolicy
 )
-from PySide6.QtCore import Qt, QSize
-from PySide6.QtGui import QFont
+from PySide6.QtCore import Qt, QSize, QTimer
+from PySide6.QtGui import QFont, QFontMetrics
 import os
 from package.resourcesPath import AppContext
 
@@ -23,7 +23,6 @@ class ComponentSearchWidget(QWidget):
         self.load_json_file()
 
     def setup_ui(self):
-        self.setWindowTitle("Recherche de Composants")
         # Keep original size hint, but allow for expansion
         self.setSizePolicy(QSizePolicy.Minimum,QSizePolicy.Expanding)
 
@@ -38,25 +37,6 @@ class ComponentSearchWidget(QWidget):
         left_layout = QVBoxLayout(left_container)
         left_layout.setSpacing(20)
         left_layout.setContentsMargins(0, 0, 0, 0)
-
-        # Top labels for "0001" data
-        top_label_widget = QWidget()
-        top_label_layout = QHBoxLayout(top_label_widget)
-        top_label_layout.setContentsMargins(0,0,0,0)
-        self.key0001_ref_label = QLabel()
-        self.key0001_ref_label.setStyleSheet("font-weight: bold; font-size: 14px; background-color: #f5f5f5; padding: 5px; border-radius: 4px;")
-        self.key0001_ref_label.setTextInteractionFlags(Qt.TextSelectableByMouse | Qt.TextSelectableByKeyboard)
-        self.key0001_ref_label.setCursor(Qt.IBeamCursor)
-        
-        self.key0001_desc_label = QLabel()
-        self.key0001_desc_label.setStyleSheet("font-weight: bold; font-size: 14px; background-color: #f5f5f5; padding: 5px; border-radius: 4px;")
-        self.key0001_desc_label.setTextInteractionFlags(Qt.TextSelectableByMouse | Qt.TextSelectableByKeyboard)
-        self.key0001_desc_label.setCursor(Qt.IBeamCursor)
-        
-        top_label_layout.addWidget(self.key0001_ref_label)
-        top_label_layout.addWidget(self.key0001_desc_label)
-        top_label_layout.addStretch(1)
-        left_layout.addWidget(top_label_widget)
 
         # Search input
         search_layout = QHBoxLayout()
@@ -136,6 +116,9 @@ class ComponentSearchWidget(QWidget):
                 background-color: #f9f9f9;
             }
         """)
+        
+        # Définir un titre temporaire pour la fenêtre 
+        self.setWindowTitle("Recherche de Composants")
 
     def create_display_area(self, label_text, object_name):
         layout = QVBoxLayout()
@@ -163,11 +146,17 @@ class ComponentSearchWidget(QWidget):
                 data = json.load(jsonfile)
                 try:
                     row = next(row for row in data if row[0] == "0001")
-                    self.key0001_ref_label.setText(f"Référence: {row[1].strip()}")
-                    self.key0001_desc_label.setText(f"Description: {row[2].strip()}")
+                    reference = row[1].strip()
+                    description = row[2].strip()
+                    
+                    # Construire le titre avec référence et description
+                    title = f"Référence: {reference} - Description: {description}"
+                    self.setWindowTitle(title)
+                    
+                    # Ajuster la taille de la police pour s'assurer que le titre s'affiche entièrement
+                    self.adjustTitleFontSize(title)
                 except StopIteration:
-                    self.key0001_ref_label.setText("Clé 0001 non trouvée")
-                    self.key0001_desc_label.setText("")
+                    self.setWindowTitle("Clé 0001 non trouvée")
 
                 for row in data:
                     if isinstance(row, list) and len(row) >= 2 and row[0] != "0001":
@@ -185,6 +174,29 @@ class ComponentSearchWidget(QWidget):
             self.show_error(f"Erreur inattendue: {e}")
         finally:
             self.update_selected_components_display()
+
+    def adjustTitleFontSize(self, title):
+        # Cette fonction est appelée après un court délai pour s'assurer que la fenêtre est construite
+        QTimer.singleShot(100, lambda: self.doAdjustTitleFontSize(title))
+
+    def doAdjustTitleFontSize(self, title):
+        # S'assurer que le titre s'affiche correctement sans être tronqué
+        # Cette implémentation est une solution simple car on ne peut pas directement
+        # accéder à la police de la barre de titre de façon portable
+        width = self.width()
+        if width <= 0:
+            # La fenêtre n'est pas encore complètement initialisée, réessayer plus tard
+            QTimer.singleShot(100, lambda: self.doAdjustTitleFontSize(title))
+            return
+
+        # La longueur estimée du titre vs. la largeur de la fenêtre
+        font = QFont("Arial", 10, QFont.Bold)
+        metrics = QFontMetrics(font)
+        title_width = metrics.horizontalAdvance(title)
+        
+        if title_width > width * 0.9:  # Si le titre est trop long (90% de la largeur de la fenêtre)
+            # Adapter la taille minimale de la fenêtre pour accommoder le titre
+            self.setMinimumWidth(title_width + 40)  # 40px de marge
 
     def search_component(self):
         search_text = self.normalize_key(self.search_input.text())

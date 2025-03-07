@@ -138,43 +138,83 @@ class ActionSelectionDialog(QDialog):
     """
     def __init__(self, action_names, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Sélection d'action")
+        self.setWindowTitle("Choisissez une action")
         self.setWindowModality(Qt.NonModal)
         self.action_names = action_names
         self.parent_window = parent
-
-        # Layout principal vertical
-        main_layout = QVBoxLayout(self)
-
-        # Bouton Fermer en premier (rouge)
-        close_button = QPushButton("Fermer cette fenêtre")
-        close_button.setStyleSheet("""
-            QPushButton {
-                background-color: red; 
-                color: white; 
-                font-weight: bold;
-                border-radius: 5px;
-                padding: 5px 15px;
+        
+        # Style moderne pour la fenêtre
+        self.setStyleSheet("""
+            QDialog {
+                background-color: #f8f9fa;
+                border-radius: 10px;
             }
-            QPushButton:hover {
-                background-color: #aa0000;
+            QScrollArea {
+                border: none;
+                background-color: transparent;
+            }
+            QScrollBar:vertical {
+                background: #f0f0f0;
+                width: 10px;
+                border-radius: 5px;
+            }
+            QScrollBar::handle:vertical {
+                background: #c0c0c0;
+                border-radius: 5px;
+                min-height: 20px;
+            }
+            QScrollBar::handle:vertical:hover {
+                background: #a0a0a0;
+            }
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+                height: 0px;
+            }
+            QScrollBar:horizontal {
+                height: 0px;
+                background: transparent;
             }
         """)
-        close_button.clicked.connect(self.close)
-        main_layout.addWidget(close_button)
+
+        # Layout principal vertical avec marges élégantes
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(15, 15, 15, 15)
+        main_layout.setSpacing(12)
 
         # --- Utilisation de CustomScrollArea pour les boutons ---
         scroll_area = CustomScrollArea()
         scroll_area.setWidgetResizable(True)  # s'adapte à la taille du contenu
+        scroll_area.setStyleSheet("background: transparent;")
+        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)  # Désactiver la barre de défilement horizontale
 
         # Le conteneur qui va réellement héberger les boutons
         scroll_container = QWidget()
+        scroll_container.setStyleSheet("background: transparent;")
         scroll_layout = QVBoxLayout(scroll_container)
-        scroll_layout.setSpacing(10)  # Espacement vertical entre boutons
+        scroll_layout.setSpacing(8)  # Espacement vertical entre boutons
+        scroll_layout.setContentsMargins(0, 5, 0, 5)
 
-        # Ajout des boutons dans scroll_container
-        for action_name in self.action_names:
+        # Ajout des boutons dans scroll_container avec un style moderne
+        action_button_style = """
+            QPushButton {
+                background-color: #3498db;
+                color: white;
+                border-radius: 5px;
+                padding: 10px;
+                font-size: 13px;
+                text-align: left;
+                border: none;
+            }
+            QPushButton:hover {
+                background-color: #2980b9;
+            }
+            QPushButton:pressed {
+                background-color: #1c6ea4;
+            }
+        """
+        
+        for i, action_name in enumerate(self.action_names):
             btn = QPushButton(action_name)
+            btn.setStyleSheet(action_button_style)
             btn.clicked.connect(
                 lambda checked, name=action_name: self.on_action_button_clicked(name)
             )
@@ -184,14 +224,25 @@ class ActionSelectionDialog(QDialog):
         scroll_area.setWidget(scroll_container)
 
         # On limite la hauteur pour n'afficher que ~8 boutons
-        # Supposons ~40 px de hauteur par bouton (selon votre style).
-        # Ajustez selon vos besoins (ex. 8 * 45 = 360).
-        scroll_area.setFixedHeight(9 * 50)
+        # et on ajoute un peu d'espace pour le design moderne
+        scroll_area.setFixedHeight(9 * 45)
 
         # On ajoute la zone défilante dans le layout principal
         main_layout.addWidget(scroll_area)
 
+        # Ajuster la taille de la fenêtre
+        self.setMinimumWidth(280)
         self.adjustSize()
+        
+        # Ombre portée pour un effet 3D subtil
+        from PySide6.QtWidgets import QGraphicsDropShadowEffect
+        from PySide6.QtGui import QColor
+        
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(15)
+        shadow.setColor(QColor(0, 0, 0, 80))
+        shadow.setOffset(0, 0)
+        self.setGraphicsEffect(shadow)
 
     def on_action_button_clicked(self, action_name):
         """
