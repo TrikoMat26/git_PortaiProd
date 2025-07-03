@@ -1,6 +1,29 @@
-Nom du composant: R1
-Référence: 5136C2610170481
-Description: RESI 4.7K 1% 1/16W MS 0402 ROHS
+Nom du composant: U1
+Référence: JYT40202
+Description: AMP OP RRIO LMV841MG SC70-40°/120°
+Référence Fabricant: LMV841MGX/NOPB
+
+
+
+
+
+
+========================================
+Nom du composant: U2
+Référence: 1NTC008549
+Description: 74AHCT14 SINGLE SCHMIT INV
+Référence Fabricant: 74AHCT1G14GW,125
+
+
+
+
+
+
+========================================
+Nom du composant: U3
+Référence: JYT40209
+Description: POWER OP AMP 1A -40/125°C ROHS
+Référence Fabricant: TCA0372DWR2G
 
 
 

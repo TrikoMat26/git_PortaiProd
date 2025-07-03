@@ -51,6 +51,7 @@ class ComponentSearchWidget(QWidget):
         left_layout.addLayout(self.create_display_area("Nom du composant:", "component_name"))
         left_layout.addLayout(self.create_display_area("Référence:", "reference"))
         left_layout.addLayout(self.create_display_area("Description:", "description"))
+        left_layout.addLayout(self.create_display_area("Référence Fabricant:", "manufacturer_ref"))
 
         # Buttons
         button_layout = QHBoxLayout()
@@ -165,6 +166,8 @@ class ComponentSearchWidget(QWidget):
                         value = [row[1].strip()]
                         if len(row) > 2:
                             value.append(row[2].strip())
+                        if len(row) > 3:
+                            value.append(row[3].strip())  # Référence Fabricant (ZREFF)
                         if normalized_key:
                             self.data_by_key[normalized_key] = value
 
@@ -203,12 +206,15 @@ class ComponentSearchWidget(QWidget):
         self.findChild(QLineEdit, "component_name").clear()
         self.findChild(QLineEdit, "reference").clear()
         self.findChild(QLineEdit, "description").clear()
+        self.findChild(QLineEdit, "manufacturer_ref").clear()
         if search_text in self.data_by_key:
             component_data = self.data_by_key[search_text]
             self.findChild(QLineEdit, "component_name").setText(search_text)
             self.findChild(QLineEdit, "reference").setText(component_data[0])
             if len(component_data) > 1:
                 self.findChild(QLineEdit, "description").setText(component_data[1])
+            if len(component_data) > 2:
+                self.findChild(QLineEdit, "manufacturer_ref").setText(component_data[2])
 
     def open_file(self):
         file_path = Path(resources_dir).parent / "commande_composants.txt"
@@ -227,11 +233,13 @@ class ComponentSearchWidget(QWidget):
         component_name = self.findChild(QLineEdit, "component_name").text().upper()
         reference = self.findChild(QLineEdit, "reference").text()
         description = self.findChild(QLineEdit, "description").text()
+        manufacturer_ref = self.findChild(QLineEdit, "manufacturer_ref").text()
         if component_name and reference:
             component_info = (
                 f"Nom du composant: {component_name}\n"
                 f"Référence: {reference}\n"
-                f"Description: {description}\n\n"
+                f"Description: {description}\n"
+                f"Référence Fabricant: {manufacturer_ref}\n\n"
             )
             self.selected_components.append(component_info)
             self.update_selected_components_display()
@@ -239,6 +247,7 @@ class ComponentSearchWidget(QWidget):
             self.findChild(QLineEdit, "component_name").clear()
             self.findChild(QLineEdit, "reference").clear()
             self.findChild(QLineEdit, "description").clear()
+            self.findChild(QLineEdit, "manufacturer_ref").clear()
             self.search_input.setFocus()
         else:
             self.show_error("Veuillez sélectionner un composant valide.")
